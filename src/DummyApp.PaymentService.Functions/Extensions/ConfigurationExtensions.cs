@@ -1,5 +1,6 @@
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using DummyApp.PaymentService.Functions.Options;
 using Microsoft.Extensions.Configuration;
 
 namespace DummyApp.PaymentService.Functions.Extensions;
@@ -11,7 +12,7 @@ public static class ConfigurationExtensions
         configuration.AddEnvironmentVariables();
 
         var builtConfig = configuration.Build();
-        var keyVaultUrl = builtConfig["KeyVault__Url"];
+        var keyVaultUrl = builtConfig[$"{KeyVaultOptions.SectionName}:{nameof(KeyVaultOptions.Url)}"];
         if (string.IsNullOrEmpty(keyVaultUrl))
         {
             return configuration;
