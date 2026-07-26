@@ -1,0 +1,57 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio temporary files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Auto generated files
+*.generated.cs
+*.g.cs
+*.g.i.cs
+
+# Rider
+.idea/
+*.sln.iml
+
+# MSBuild
+*.log
+*.vspscc
+*.vssscc
+
+# Visual Studio Code
+.vscode/
+
+# Azure Functions
+bin/obj
+
+# Publish output
+publish/
+*.publish.xml
+
+# NuGet
+*.nupkg
+packages/
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+!**/packages/build/
+!**/packages/repositories.config
+
+# NuGet v3
+*.snupkg
+
+# Dotnet Tools
+.toolstarget
+
+# User-specific files
+*.userprefs
+
+# IIS Express
+/.vs/
+
+# Rider workaround
+.idea/
+*.sln.iml

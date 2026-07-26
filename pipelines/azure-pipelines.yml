@@ -1,0 +1,115 @@
+trigger:
+  - main
+
+# Disable PR trigger as build validation is covered by GitHub Actions
+pr: none
+
+stages:
+
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build job
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
+      displayName: 'Use .NET 8 SDK'
+
+    - script: dotnet restore src/DummyApp.PaymentService.Functions/DummyApp.PaymentService.Functions.csproj
+      displayName: 'Restore NuGet packages'
+
+    - script: >
+        dotnet publish src/DummyApp.PaymentService.Functions/DummyApp.PaymentService.Functions.csproj
+        --configuration Release
+        --no-restore
+        --output $(Build.ArtifactStagingDirectory)/publish
+      displayName: 'Publish'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/publish'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
+        replaceExistingArchive: true
+      displayName: 'Archive publish output'
+
+    - publish: $(Build.ArtifactStagingDirectory)/site.zip
+      artifact: drop
+
+- stage: Test
+  displayName: Test
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: Test
+    displayName: Test job
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
+      displayName: 'Use .NET 8 SDK'
+
+    - script: dotnet restore tests/DummyApp.PaymentService.Functions.Tests/DummyApp.PaymentService.Functions.Tests.csproj
+      displayName: 'Restore test project packages'
+
+    - script: dotnet test tests/DummyApp.PaymentService.Functions.Tests/DummyApp.PaymentService.Functions.Tests.csproj --configuration Release --no-restore
+      displayName: 'Run unit tests'
+
+- stage: DeployTest
+  displayName: 'Deploy test'
+  dependsOn: Test
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
+  jobs:
+  - deployment: Deploy
+    environment: $(PIPELINES_ENVIRONMENT_TEST)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(SERVICE_CONNECTION_TEST)'
+              appType: 'functionApp'
+              appName: '$(APP_NAME_TEST)'
+              package: '$(Pipeline.Workspace)/drop/site.zip'
+              runtimeStack: 'DOTNET_ISOLATED|8.0'
+            displayName: 'Deploy to Azure Function App (Test)'
+
+- stage: DeployProd
+  displayName: 'Deploy prod'
+  dependsOn: DeployTest
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')))
+  jobs:
+  - deployment: DeployProd
+    environment: $(PIPELINES_ENVIRONMENT_PROD)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(SERVICE_CONNECTION_PROD)'
+              appType: 'functionApp'
+              appName: '$(APP_NAME_PROD)'
+              package: '$(Pipeline.Workspace)/drop/site.zip'
+              runtimeStack: 'DOTNET_ISOLATED|8.0'
+            displayName: 'Deploy to Azure Function App (Prod)'
