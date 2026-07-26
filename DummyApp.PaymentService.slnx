@@ -1,0 +1,4 @@
+<Solution>
+    <Project Path="src/DummyApp.PaymentService.Functions/DummyApp.PaymentService.Functions.csproj" />
+    <Project Path="tests/DummyApp.PaymentService.Functions.Tests/DummyApp.PaymentService.Functions.Tests.csproj" />
+</Solution>
