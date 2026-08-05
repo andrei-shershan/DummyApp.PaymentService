@@ -2,6 +2,11 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "Stripe__SecretKey": "sk_test_example",
+    "Stripe__WebhookSecret": "whsec_example",
+    "Stripe__SiteId": "local",
+    "Stripe__SuccessUrl": "https://fe.dummy.localhost/checkout/success",
+    "Stripe__CancelUrl": "https://fe.dummy.localhost/basket"
   }
 }
