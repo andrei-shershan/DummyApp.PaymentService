@@ -35,7 +35,7 @@ public sealed class PaymentServiceFunction
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "payment")] HttpRequestData req)
     {
         var response = req.CreateResponse(HttpStatusCode.OK);
-        response.WriteString("Payment service is running.");
+        response.WriteString("Payment service is running!");
         return response;
     }
 
