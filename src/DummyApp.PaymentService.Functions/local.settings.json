@@ -7,6 +7,8 @@
     "Stripe__WebhookSecret": "whsec_example",
     "Stripe__SiteId": "local",
     "Stripe__SuccessUrl": "https://fe.dummy.localhost/checkout/success",
-    "Stripe__CancelUrl": "https://fe.dummy.localhost/basket"
+    "Stripe__CancelUrl": "https://fe.dummy.localhost/basket",
+    "ServiceBus__ConnectionString": "Endpoint=sb://<namespace>.servicebus.windows.net/;SharedAccessKeyName=<key-name>;SharedAccessKey=<key>",
+    "ServiceBus__QueueName": "payment-events"
   }
 }
