@@ -76,7 +76,7 @@ public sealed class PaymentServiceFunction
         }
         catch (StripeException ex)
         {
-            _logger.logError(ex, "Stripe webhook signature verification failed.");
+            _logger.LogError(ex, "Stripe webhook signature verification failed.");
             return CreateBadRequest(req, "Invalid webhook signature.");
         }
 
