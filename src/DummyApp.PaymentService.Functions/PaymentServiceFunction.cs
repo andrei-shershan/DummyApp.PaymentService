@@ -16,11 +16,14 @@ public sealed class PaymentServiceFunction
 {
     private readonly StripeOptions _stripeOptions;
     private readonly ILogger<PaymentServiceFunction> _logger;
+    private readonly IPaymentEventPublisher _paymentEventPublisher;
 
-    public PaymentServiceFunction(IOptions<StripeOptions> stripeOptions, ILogger<PaymentServiceFunction> logger)
+    public PaymentServiceFunction(IOptions<StripeOptions> stripeOptions, ILogger<PaymentServiceFunction> logger, IPaymentEventPublisher paymentEventPublisher)
     {
         _stripeOptions = stripeOptions.Value;
         _logger = logger;
+        _paymentEventPublisher = paymentEventPublisher;
+
         if (!string.IsNullOrWhiteSpace(_stripeOptions.SecretKey))
         {
             StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
@@ -32,7 +35,7 @@ public sealed class PaymentServiceFunction
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "payment")] HttpRequestData req)
     {
         var response = req.CreateResponse(HttpStatusCode.OK);
-        response.WriteString("Payment service is running.");
+        response.WriteString("Payment service is running!");
         return response;
     }
 
@@ -117,11 +120,18 @@ public sealed class PaymentServiceFunction
         await PublishPaymentEventAsync(orderId, siteId, session.PaymentStatus ?? session.Status);
     }
 
-    private Task PublishPaymentEventAsync(string orderId, string siteId, string paymentStatus)
+    private async Task PublishPaymentEventAsync(string orderId, string siteId, string paymentStatus)
     {
         _logger.LogInformation("Publishing payment event for order {OrderId}, site {SiteId}, status {PaymentStatus}.", orderId, siteId, paymentStatus);
-        // TODO: Replace this placeholder with Azure Service Bus event publishing or direct order update logic.
-        return Task.CompletedTask;
+
+        var paymentEvent = new PaymentEvent(
+            orderId,
+            siteId,
+            paymentStatus,
+            "checkout.session.completed"
+        );
+
+        await _paymentEventPublisher.PublishAsync(paymentEvent);
     }
 
     private static HttpResponseData CreateBadRequest(HttpRequestData req, string message)
