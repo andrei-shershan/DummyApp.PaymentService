@@ -76,9 +76,9 @@ public sealed class PaymentServiceFunction
         }
         catch (StripeException ex)
         {
-            var signatureSuffix = signature.Length > 4 ? signature[^4..] : signature;
-            _logger.LogWarning(ex, "Stripe webhook signature validation failed. Signature suffix: {SignatureSuffix}.", signatureSuffix);
-            return CreateBadRequest(req, $"Invalid webhook signature. {signatureSuffix}");
+            var webhookSecretSuffix = webhookSecret.Length > 4 ? webhookSecret[^4..] : webhookSecret;
+            _logger.LogWarning(ex, "Stripe webhook signature validation failed. Webhook secret suffix: {WebhookSecretSuffix}.", webhookSecretSuffix);
+            return CreateBadRequest(req, "Invalid webhook signature." + webhookSecretSuffix);
         }
 
         _logger.LogInformation("Stripe webhook received event {EventType}.", stripeEvent.Type);
