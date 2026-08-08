@@ -13,6 +13,7 @@ var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
         services.Configure<StripeOptions>(context.Configuration.GetSection(StripeOptions.SectionName));
+        services.Configure<ApplicationOptions>(context.Configuration.GetSection(ApplicationOptions.SectionName));
         services.Configure<ServiceBusOptions>(context.Configuration.GetSection(ServiceBusOptions.SectionName));
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<StripeOptions>>().Value);
         services.AddSingleton(sp =>
@@ -29,13 +30,13 @@ var host = new HostBuilder()
         services.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<IOptions<ServiceBusOptions>>().Value;
-            if (string.IsNullOrWhiteSpace(options.QueueName))
+            if (string.IsNullOrWhiteSpace(options.PaymentEventsQueueName))
             {
-                throw new InvalidOperationException($"{ServiceBusOptions.SectionName}:{nameof(ServiceBusOptions.QueueName)} is not configured.");
+                throw new InvalidOperationException($"{ServiceBusOptions.SectionName}:{nameof(ServiceBusOptions.PaymentEventsQueueName)} is not configured.");
             }
 
             var client = sp.GetRequiredService<ServiceBusClient>();
-            return client.CreateSender(options.QueueName);
+            return client.CreateSender(options.PaymentEventsQueueName);
         });
 
         services.AddSingleton<IPaymentEventPublisher, ServiceBusPaymentEventPublisher>();

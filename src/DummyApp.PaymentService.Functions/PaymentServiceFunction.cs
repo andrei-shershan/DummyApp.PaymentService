@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DummyApp.PaymentService.Functions.Options;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Stripe;
@@ -17,8 +18,9 @@ public sealed class PaymentServiceFunction
     private readonly StripeOptions _stripeOptions;
     private readonly ILogger<PaymentServiceFunction> _logger;
     private readonly IPaymentEventPublisher _paymentEventPublisher;
+    private readonly string _siteId;
 
-    public PaymentServiceFunction(IOptions<StripeOptions> stripeOptions, ILogger<PaymentServiceFunction> logger, IPaymentEventPublisher paymentEventPublisher)
+    public PaymentServiceFunction(IOptions<StripeOptions> stripeOptions, IOptions<ApplicationOptions> applicationOptions, ILogger<PaymentServiceFunction> logger, IPaymentEventPublisher paymentEventPublisher)
     {
         _stripeOptions = stripeOptions.Value;
         _logger = logger;
@@ -28,6 +30,8 @@ public sealed class PaymentServiceFunction
         {
             StripeConfiguration.ApiKey = _stripeOptions.SecretKey;
         }
+
+        _siteId = applicationOptions.Value.SiteId ?? string.Empty;
     }
 
     [Function("PaymentService")]
@@ -107,7 +111,7 @@ public sealed class PaymentServiceFunction
     private async Task HandleCheckoutSessionCompletedAsync(Session session)
     {
         var orderId = session.Metadata.TryGetValue("orderId", out var orderIdValue) ? orderIdValue : null;
-        var siteId = session.Metadata.TryGetValue("siteId", out var siteIdValue) ? siteIdValue : _stripeOptions.SiteId ?? "unknown";
+        var siteId = session.Metadata.TryGetValue("siteId", out var siteIdValue) ? siteIdValue : _siteId;
 
         if (string.IsNullOrWhiteSpace(orderId))
         {
