@@ -1,0 +1,14 @@
+**/obj
+**/bin
+**/local.settings.json
+**/tests
+**/pipelines
+**/.github
+**/*.slnx
+**/.vs
+**/.vscode
+**/.git
+**/.gitignore
+npm-debug.log*
+Dockerfile*
+README.md
