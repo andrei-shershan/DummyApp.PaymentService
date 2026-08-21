@@ -1,14 +1,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Debug
 WORKDIR /src
 COPY ["src/DummyApp.PaymentService.Functions/DummyApp.PaymentService.Functions.csproj", "src/DummyApp.PaymentService.Functions/"]
 RUN dotnet restore "./src/DummyApp.PaymentService.Functions/DummyApp.PaymentService.Functions.csproj"
-COPY . .
+COPY ["src/DummyApp.PaymentService.Functions/", "src/DummyApp.PaymentService.Functions/"]
 WORKDIR "/src/src/DummyApp.PaymentService.Functions"
-RUN dotnet build "./DummyApp.PaymentService.Functions.csproj" -c Release -o /app/build /p:DefineConstants=DEBUG
+RUN dotnet build "./DummyApp.PaymentService.Functions.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
+ARG BUILD_CONFIGURATION=Debug
 WORKDIR "/src/src/DummyApp.PaymentService.Functions"
-RUN dotnet publish "./DummyApp.PaymentService.Functions.csproj" -c Release -o /app/publish /p:DefineConstants=DEBUG
+RUN dotnet publish "./DummyApp.PaymentService.Functions.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 
 FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4 AS final
 WORKDIR /home/site/wwwroot
